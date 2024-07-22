@@ -22,40 +22,21 @@ fn main() {
         .init_asset::<ThemeColors>()
         .init_asset_loader::<ThemeColorsLoader>()
         .add_systems(Startup, setup)
-        .add_systems(
-            Update,
-            check_themes_changed.run_if(resource_exists::<MyTheme>),
-        )
         .run();
-}
-
-#[derive(Resource, Default)]
-struct MyTheme(Handle<ThemeColors>);
-
-fn check_themes_changed(
-    mut commands: Commands,
-    mut theme_data: ResMut<ThemeData>,
-    my_theme: Res<MyTheme>,
-    themes: Res<Assets<ThemeColors>>,
-) {
-    let theme_handle = my_theme.0.clone();
-    if themes.is_changed() && themes.get(&theme_handle).is_some() {
-        theme_data.colors = themes.get(&theme_handle).unwrap().clone();
-        commands.insert_resource(theme_data.clone());
-        builder(commands, theme_data);
-    }
 }
 
 fn setup(mut commands: Commands, theme_data: ResMut<ThemeData>, asset_server: Res<AssetServer>) {
     // Load the theme
-    let theme: Handle<ThemeColors> = asset_server.load("themes/material-theme.json");
-    commands.insert_resource(MyTheme(theme));
+    let theme_handle = asset_server.load::<ThemeColors>("themes/material-theme.json");
+    commands.insert_resource(ThemeData {
+        active_scheme: Scheme::Light(Contrast::Standard),
+        theme_handle: Some(theme_handle),
+        ..Default::default()
+    });
 
     // The main camera which will render UI
     commands.spawn((Camera2dBundle::default(), IsDefaultUiCamera));
-}
 
-fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
     commands
         .ui_builder(UiRoot)
         .row(|row| {
@@ -99,18 +80,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                     .color_block(
                                                         "Primary".into(),
                                                         "P-40".into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .primary
-                                                            .p_100
-                                                            .into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .primary
-                                                            .p_40
-                                                            .into(),
+                                                        Material3::On(On::Primary),
+                                                        Material3::Accent(Accent::Primary),
                                                     )
                                                     .style()
                                                     .margin(UiRect::right(Val::Px(
@@ -120,18 +91,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                     .color_block(
                                                         "Secondary".into(),
                                                         "S-40".into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .secondary
-                                                            .p_100
-                                                            .into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .secondary
-                                                            .p_40
-                                                            .into(),
+                                                        Material3::On(On::Secondary),
+                                                        Material3::Accent(Accent::Secondary),
                                                     )
                                                     .style()
                                                     .margin(UiRect::right(Val::Px(
@@ -140,13 +101,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 column.color_block(
                                                     "Tertiary".into(),
                                                     "T-40".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .tertiary
-                                                        .p_100
-                                                        .into(),
-                                                    theme_data.colors.palettes.tertiary.p_40.into(),
+                                                    Material3::On(On::Tertiary),
+                                                    Material3::Accent(Accent::Tertiary),
                                                 );
                                             })
                                             .style()
@@ -158,18 +114,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                     .color_block(
                                                         "On Primary".into(),
                                                         "P-100".into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .primary
-                                                            .p_40
-                                                            .into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .primary
-                                                            .p_100
-                                                            .into(),
+                                                        Material3::Accent(Accent::Primary),
+                                                        Material3::On(On::Primary),
                                                     )
                                                     .style()
                                                     .margin(UiRect::right(Val::Px(
@@ -179,18 +125,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                     .color_block(
                                                         "On Secondary".into(),
                                                         "S-100".into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .secondary
-                                                            .p_40
-                                                            .into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .secondary
-                                                            .p_100
-                                                            .into(),
+                                                        Material3::Accent(Accent::Secondary),
+                                                        Material3::On(On::Secondary),
                                                     )
                                                     .style()
                                                     .margin(UiRect::right(Val::Px(
@@ -199,13 +135,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 column.color_block(
                                                     "On Tertiary".into(),
                                                     "T-100".into(),
-                                                    theme_data.colors.palettes.tertiary.p_40.into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .tertiary
-                                                        .p_100
-                                                        .into(),
+                                                    Material3::Accent(Accent::Tertiary),
+                                                    Material3::On(On::Tertiary),
                                                 );
                                             })
                                             .style()
@@ -220,18 +151,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                     .color_block(
                                                         "Primary Container".into(),
                                                         "P-90".into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .primary
-                                                            .p_10
-                                                            .into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .primary
-                                                            .p_90
-                                                            .into(),
+                                                        Material3::On(On::PrimaryContainer),
+                                                        Material3::Container(Container::Primary),
                                                     )
                                                     .style()
                                                     .margin(UiRect::right(Val::Px(
@@ -241,18 +162,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                     .color_block(
                                                         "Secondary Container".into(),
                                                         "S-90".into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .secondary
-                                                            .p_10
-                                                            .into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .secondary
-                                                            .p_90
-                                                            .into(),
+                                                        Material3::On(On::SecondaryContainer),
+                                                        Material3::Container(Container::Secondary),
                                                     )
                                                     .style()
                                                     .margin(UiRect::right(Val::Px(
@@ -261,8 +172,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 column.color_block(
                                                     "Tertiary Container".into(),
                                                     "T-90".into(),
-                                                    theme_data.colors.palettes.tertiary.p_10.into(),
-                                                    theme_data.colors.palettes.tertiary.p_90.into(),
+                                                    Material3::On(On::TertiaryContainer),
+                                                    Material3::Container(Container::Tertiary),
                                                 );
                                             })
                                             .style()
@@ -274,18 +185,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                     .color_block(
                                                         "On Primary Container".into(),
                                                         "P-10".into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .primary
-                                                            .p_90
-                                                            .into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .primary
-                                                            .p_10
-                                                            .into(),
+                                                        Material3::Container(Container::Primary),
+                                                        Material3::On(On::PrimaryContainer),
                                                     )
                                                     .style()
                                                     .margin(UiRect::right(Val::Px(
@@ -295,18 +196,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                     .color_block(
                                                         "On Secondary Container".into(),
                                                         "S-10".into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .secondary
-                                                            .p_90
-                                                            .into(),
-                                                        theme_data
-                                                            .colors
-                                                            .palettes
-                                                            .secondary
-                                                            .p_10
-                                                            .into(),
+                                                        Material3::Container(Container::Secondary),
+                                                        Material3::On(On::SecondaryContainer),
                                                     )
                                                     .style()
                                                     .margin(UiRect::right(Val::Px(
@@ -315,8 +206,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 column.color_block(
                                                     "On Tertiary Container".into(),
                                                     "T-10".into(),
-                                                    theme_data.colors.palettes.tertiary.p_90.into(),
-                                                    theme_data.colors.palettes.tertiary.p_10.into(),
+                                                    Material3::Container(Container::Tertiary),
+                                                    Material3::On(On::TertiaryContainer),
                                                 );
                                             })
                                             .style()
@@ -330,40 +221,20 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 column.color_block(
                                                     "Suface Dim".into(),
                                                     "N-87".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .on_surface,
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .surface_dim,
+                                                    Material3::On(On::Surface),
+                                                    Material3::Surface(Surface::SurfaceDim),
                                                 );
                                                 column.color_block(
                                                     "Surface".into(),
                                                     "N-98".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .secondary
-                                                        .p_10
-                                                        .into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .secondary
-                                                        .p_90
-                                                        .into(),
+                                                    Material3::On(On::Surface),
+                                                    Material3::Surface(Surface::Surface),
                                                 );
                                                 column.color_block(
                                                     "Surface Bright".into(),
                                                     "N-98".into(),
-                                                    theme_data.colors.palettes.tertiary.p_10.into(),
-                                                    theme_data.colors.palettes.tertiary.p_90.into(),
+                                                    Material3::On(On::Surface),
+                                                    Material3::Surface(Surface::SurfaceBright),
                                                 );
                                             })
                                             .style()
@@ -377,67 +248,32 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 column.color_block(
                                                     "Suf. Container Lowest".into(),
                                                     "N-100".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .on_surface,
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .surface_container_lowest,
+                                                    Material3::On(On::Surface),
+                                                    Material3::Container(Container::SurfaceLowest),
                                                 );
                                                 column.color_block(
                                                     "Surf. Container Low".into(),
                                                     "N-96".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .secondary
-                                                        .p_10
-                                                        .into(),
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .surface_container_low,
+                                                    Material3::On(On::Surface),
+                                                    Material3::Container(Container::SurfaceLow),
                                                 );
                                                 column.color_block(
                                                     "Surf. Container".into(),
                                                     "N-94".into(),
-                                                    theme_data.colors.palettes.tertiary.p_10.into(),
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .surface_container,
+                                                    Material3::On(On::Surface),
+                                                    Material3::Container(Container::SurfaceMid),
                                                 );
                                                 column.color_block(
                                                     "Surf. Container High".into(),
                                                     "N-92".into(),
-                                                    theme_data.colors.palettes.tertiary.p_10.into(),
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .surface_container_high,
+                                                    Material3::On(On::Surface),
+                                                    Material3::Container(Container::SurfaceHigh),
                                                 );
                                                 column.color_block(
                                                     "Surf. Container Highest".into(),
                                                     "N-90".into(),
-                                                    theme_data.colors.palettes.tertiary.p_10.into(),
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .surface_container_highest,
+                                                    Material3::On(On::Surface),
+                                                    Material3::Container(Container::SurfaceHighest),
                                                 );
                                             })
                                             .style()
@@ -451,56 +287,26 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 column.color_block(
                                                     "On Suface".into(),
                                                     "N-10".into(),
-                                                    theme_data.colors.palettes.neutral.p_100.into(),
-                                                    theme_data.colors.palettes.neutral.p_10.into(),
+                                                    Material3::Surface(Surface::Surface),
+                                                    Material3::On(On::Surface),
                                                 );
                                                 column.color_block(
                                                     "On Surface Var.".into(),
                                                     "NV-30".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .neutral_variant
-                                                        .p_100
-                                                        .into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .neutral_variant
-                                                        .p_30
-                                                        .into(),
+                                                    Material3::Surface(Surface::SurfaceVariant),
+                                                    Material3::On(On::SurfaceVariant),
                                                 );
                                                 column.color_block(
                                                     "Outline".into(),
                                                     "NV-50".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .neutral_variant
-                                                        .p_100
-                                                        .into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .neutral_variant
-                                                        .p_50
-                                                        .into(),
+                                                    Material3::Surface(Surface::Surface),
+                                                    Material3::Accent(Accent::Outline),
                                                 );
                                                 column.color_block(
                                                     "Outline Variant".into(),
                                                     "NV-80".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .neutral_variant
-                                                        .p_100
-                                                        .into(),
-                                                    theme_data
-                                                        .colors
-                                                        .palettes
-                                                        .neutral_variant
-                                                        .p_10
-                                                        .into(),
+                                                    Material3::Surface(Surface::InverseSurface),
+                                                    Material3::Accent(Accent::OutlineVariant),
                                                 );
                                             })
                                             .style()
@@ -516,8 +322,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "Error".into(),
                                                     "E-40".into(),
-                                                    theme_data.colors.schemes.light.colors.on_error,
-                                                    theme_data.colors.schemes.light.colors.error,
+                                                    Material3::On(On::Error),
+                                                    Material3::Accent(Accent::Error),
                                                 );
                                             })
                                             .style()
@@ -528,8 +334,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "On Error".into(),
                                                     "E-100".into(),
-                                                    theme_data.colors.schemes.light.colors.error,
-                                                    theme_data.colors.schemes.light.colors.on_error,
+                                                    Material3::Accent(Accent::Error),
+                                                    Material3::On(On::Error),
                                                 );
                                             })
                                             .style()
@@ -543,18 +349,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "Error Container".into(),
                                                     "E-90".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .on_error_container,
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .error_container,
+                                                    Material3::On(On::ErrorContainer),
+                                                    Material3::Container(Container::Error),
                                                 );
                                             })
                                             .style()
@@ -565,18 +361,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "On Error Container".into(),
                                                     "E-10".into(),
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .error_container,
-                                                    theme_data
-                                                        .colors
-                                                        .schemes
-                                                        .light
-                                                        .colors
-                                                        .on_error_container,
+                                                    Material3::Container(Container::Error),
+                                                    Material3::On(On::ErrorContainer),
                                                 );
                                             })
                                             .style()
@@ -590,8 +376,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "Inverse Surface".into(),
                                                     "N-90".into(),
-                                                    theme_data.colors.palettes.neutral.p_10.into(),
-                                                    theme_data.colors.palettes.neutral.p_90.into(),
+                                                    Material3::On(On::InverseSurface),
+                                                    Material3::Surface(Surface::InverseSurface),
                                                 );
                                             })
                                             .style()
@@ -602,8 +388,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "Inverse On Surface".into(),
                                                     "N-20".into(),
-                                                    theme_data.colors.palettes.neutral.p_100.into(),
-                                                    theme_data.colors.palettes.neutral.p_20.into(),
+                                                    Material3::Surface(Surface::InverseSurface),
+                                                    Material3::On(On::InverseSurface),
                                                 );
                                             })
                                             .style()
@@ -617,8 +403,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "Inverse Primary".into(),
                                                     "P-40".into(),
-                                                    theme_data.colors.palettes.primary.p_100.into(),
-                                                    theme_data.colors.palettes.primary.p_40.into(),
+                                                    Material3::On(On::Surface),
+                                                    Material3::Accent(Accent::InversePrimary),
                                                 );
                                             })
                                             .style()
@@ -632,8 +418,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "Scrim".into(),
                                                     "N-0".into(),
-                                                    theme_data.colors.palettes.neutral.p_100.into(),
-                                                    theme_data.colors.palettes.neutral.p_0.into(),
+                                                    Material3::On(On::Primary),
+                                                    Material3::Accent(Accent::Scrim),
                                                 )
                                                 .style()
                                                 .margin(UiRect::right(Val::Px(
@@ -642,8 +428,8 @@ fn builder(mut commands: Commands, theme_data: ResMut<ThemeData>) {
                                                 row.color_block(
                                                     "Shadow".into(),
                                                     "N-0".into(),
-                                                    theme_data.colors.palettes.neutral.p_100.into(),
-                                                    theme_data.colors.palettes.neutral.p_0.into(),
+                                                    Material3::On(On::Primary),
+                                                    Material3::Accent(Accent::Shadow),
                                                 );
                                             })
                                             .style()
@@ -757,9 +543,34 @@ impl ColorBlock {
         style_builder
             .switch_target(ColorBlock::MATERIAL_NAME_TEXT)
             .sized_font(font.clone());
+        match block.material_text_color {
+            Material3::Surface(surface) => {
+                style_builder.font_color(theme_data.colors().surface(surface))
+            }
+            Material3::Accent(accent) => {
+                style_builder.font_color(theme_data.colors().accent(accent))
+            }
+            Material3::Container(container) => {
+                style_builder.font_color(theme_data.colors().container(container))
+            }
+            Material3::On(on) => style_builder.font_color(theme_data.colors().on(on)),
+        };
+
         style_builder
             .switch_target(ColorBlock::MATERIAL_P_TEXT)
             .sized_font(font.clone());
+        match block.material_text_color {
+            Material3::Surface(surface) => {
+                style_builder.font_color(theme_data.colors().surface(surface))
+            }
+            Material3::Accent(accent) => {
+                style_builder.font_color(theme_data.colors().accent(accent))
+            }
+            Material3::Container(container) => {
+                style_builder.font_color(theme_data.colors().container(container))
+            }
+            Material3::On(on) => style_builder.font_color(theme_data.colors().on(on)),
+        };
     }
 
     pub fn frame(name: String) -> impl Bundle {
@@ -784,7 +595,7 @@ pub trait UiHeadlineExt {
         &mut self,
         name: String,
         name_value: String,
-        text_color: Color,
+        text_color: Material3,
         background_color: Material3,
     ) -> UiBuilder<Entity>;
 }
@@ -794,24 +605,15 @@ impl UiHeadlineExt for UiBuilder<'_, Entity> {
         &mut self,
         name: String,
         p: String,
-        text_color: Color,
+        text_color: Material3,
         background_color: Material3,
     ) -> UiBuilder<Entity> {
         let mut color_block = ColorBlock::default();
         let mut frame = self.container(ColorBlock::frame(name.clone()), |container| {
             color_block.material_name_text = container
                 .spawn(TextBundle {
-                    text: Text {
-                        sections: vec![TextSection::new(
-                            name,
-                            TextStyle {
-                                color: text_color,
-                                ..Default::default()
-                            },
-                        )],
-                        justify: JustifyText::Left,
-                        ..default()
-                    },
+                    text: Text::from_section(name, TextStyle::default())
+                        .with_justify(JustifyText::Left),
                     style: Style {
                         justify_self: JustifySelf::Start,
                         align_self: AlignSelf::Start,
@@ -823,16 +625,8 @@ impl UiHeadlineExt for UiBuilder<'_, Entity> {
                 .id();
             color_block.material_p_text = container
                 .spawn(TextBundle {
-                    text: Text {
-                        sections: vec![TextSection::new(
-                            p,
-                            TextStyle {
-                                color: text_color,
-                                ..Default::default()
-                            },
-                        )],
-                        ..default()
-                    },
+                    text: Text::from_section(p, TextStyle::default())
+                        .with_justify(JustifyText::Right),
                     style: Style {
                         justify_self: JustifySelf::End,
                         align_self: AlignSelf::End,
@@ -843,8 +637,8 @@ impl UiHeadlineExt for UiBuilder<'_, Entity> {
                 .style()
                 .id();
         });
+        color_block.material_text_color = text_color;
         color_block.material_background_color = background_color;
-        // frame.style().background_color(background_color);
 
         frame.insert(color_block);
 
@@ -855,7 +649,7 @@ impl UiHeadlineExt for UiBuilder<'_, Entity> {
 }
 
 #[derive(Debug, Reflect)]
-enum Material3 {
+pub enum Material3 {
     Surface(Surface),
     Accent(Accent),
     Container(Container),

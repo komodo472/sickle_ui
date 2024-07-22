@@ -18,6 +18,7 @@ use bevy::{prelude::*, ui::UiSystem};
 
 use dynamic_style::{DynamicStyle, DynamicStylePlugin};
 use pseudo_state::{AutoPseudoStatePlugin, PseudoState, PseudoStates};
+use theme_colors::ThemeColors;
 use theme_data::ThemeData;
 
 use crate::{prelude::UiBuilder, ui_commands::RefreshThemeExt, ui_style::builder::StyleBuilder};
@@ -53,6 +54,7 @@ impl Plugin for ThemePlugin {
             PostUpdate,
             (ThemeUpdate, CustomThemeUpdate.after(ThemeUpdate)).before(UiSystem::Layout),
         )
+        .add_systems(Update, material_theme_loaded)
         .init_resource::<ThemeData>()
         .init_resource::<ThemeRegistry>()
         .add_plugins((AutoPseudoStatePlugin, DynamicStylePlugin));
@@ -401,5 +403,35 @@ where
             true => app.add_systems(PostUpdate, Theme::<C>::custom_post_update()),
             false => app.add_systems(PostUpdate, Theme::<C>::post_update()),
         };
+    }
+}
+
+fn material_theme_loaded(
+    mut theme_colors_asset_event: EventReader<AssetEvent<ThemeColors>>,
+    theme_colors_assets: Res<Assets<ThemeColors>>,
+    mut theme_data: ResMut<ThemeData>,
+) {
+    for ev in theme_colors_asset_event.read() {
+        match ev {
+            AssetEvent::Added { id } => {
+                theme_data.colors = theme_colors_assets
+                    .get(*id)
+                    .expect(format!("Asset `{}` was added but doesn't exist", id).as_str())
+                    .clone()
+            }
+            AssetEvent::Modified { id } => {
+                theme_data.colors = theme_colors_assets
+                    .get(*id)
+                    .expect(format!("Asset `{}` was modified but doesn't exist", id).as_str())
+                    .clone()
+            }
+            AssetEvent::LoadedWithDependencies { id } => {
+                theme_data.colors = theme_colors_assets
+                    .get(*id)
+                    .expect(format!("Asset `{}` was modified but doesn't exist", id).as_str())
+                    .clone()
+            }
+            _ => continue,
+        }
     }
 }

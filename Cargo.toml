@@ -13,7 +13,7 @@ sickle_math = { path = "crates/sickle_math" }
 sickle_macros = { path = "crates/sickle_macros" }
 sickle_ui_scaffold = { path = "crates/sickle_ui_scaffold" }
 
-bevy = { version = "0.14" }
+bevy = { version = "0.14", features = ["file_watcher"] }
 bevy_reflect = { version = "0.14" }
 bevy_ecs_macros = { version = "0.14" }
 

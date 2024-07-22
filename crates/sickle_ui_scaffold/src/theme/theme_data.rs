@@ -52,6 +52,7 @@ pub struct ThemeData {
     pub interaction_animation: AnimationSettings,
     pub delayed_interaction_animation: AnimationSettings,
     pub enter_animation: AnimationSettings,
+    pub theme_handle: Option<Handle<ThemeColors>>,
 }
 
 impl Default for ThemeData {
@@ -82,6 +83,7 @@ impl Default for ThemeData {
             interaction_animation,
             delayed_interaction_animation,
             enter_animation,
+            theme_handle: None,
         }
     }
 }
