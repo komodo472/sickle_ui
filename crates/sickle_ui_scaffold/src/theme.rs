@@ -18,7 +18,7 @@ use bevy::{prelude::*, ui::UiSystem};
 
 use dynamic_style::{DynamicStyle, DynamicStylePlugin};
 use pseudo_state::{AutoPseudoStatePlugin, PseudoState, PseudoStates};
-use theme_colors::ThemeColors;
+use theme_colors::{ThemeColors, ThemeColorsLoader};
 use theme_data::ThemeData;
 
 use crate::{prelude::UiBuilder, ui_commands::RefreshThemeExt, ui_style::builder::StyleBuilder};
@@ -57,6 +57,8 @@ impl Plugin for ThemePlugin {
         .add_systems(Update, material_theme_loaded)
         .init_resource::<ThemeData>()
         .init_resource::<ThemeRegistry>()
+        .init_asset::<ThemeColors>()
+        .init_asset_loader::<ThemeColorsLoader>()
         .add_plugins((AutoPseudoStatePlugin, DynamicStylePlugin));
     }
 }
